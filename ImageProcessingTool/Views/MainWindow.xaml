@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageProcessingTool.ViewModels"
         mc:Ignorable="d"
-        Title="Image Processing Tool" Height="350" Width="525">
+        Title="Image Processing Tool" Height="400" Width="600">
 
     <Window.DataContext>
         <local:MainViewModel />
@@ -13,11 +13,12 @@
 
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border BorderThickness="3" BorderBrush="Black" CornerRadius="5" Padding="2" Margin="10">
+                <Image Source="{Binding DisplayedImage}" Width="350" Height="250" />
+            </Border>
             <Button Content="Load Image" Command="{Binding LoadImageCommand}" Width="150" Margin="5"/>
-            <Button Content="Convert to Grayscale" Command="{Binding ConvertToGrayscaleCommand}" Width="200" Margin="5" 
-                    IsEnabled="{Binding ImageLoaded}"/>
-            <Button Content="Save Image" Command="{Binding SaveImageCommand}" Width="150" Margin="5" 
-                    IsEnabled="{Binding ImageLoaded}"/>
+            <Button Content="Convert to Grayscale" Command="{Binding ConvertToGrayscaleCommand}" Width="200" Margin="5"/>
+            <Button Content="Save Image" Command="{Binding SaveImageCommand}" Width="150" Margin="5"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -18,15 +18,25 @@ namespace ImageProcessingTool.Services {
         public Bitmap ConvertToGrayscale(Bitmap bitmap) {
             // Create a grayscale version of the bitmap
             Bitmap grayBitmap = new Bitmap(bitmap.Width, bitmap.Height);
+
             for (int y = 0; y < bitmap.Height; y++) {
                 for (int x = 0; x < bitmap.Width; x++) {
                     Color originalColor = bitmap.GetPixel(x, y);
+
+                    // Retain the alpha (transparency) channel
+                    int alpha = originalColor.A;
+
+                    // Calculate the grayscale value
                     int grayValue = (int)(originalColor.R * 0.3 + originalColor.G * 0.59 + originalColor.B * 0.11);
-                    Color grayColor = Color.FromArgb(grayValue, grayValue, grayValue);
+
+                    // Create the grayscale color while keeping the original alpha channel
+                    Color grayColor = Color.FromArgb(alpha, grayValue, grayValue, grayValue);
                     grayBitmap.SetPixel(x, y, grayColor);
                 }
             }
+
             return grayBitmap;
         }
+
     }
 }
