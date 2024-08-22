@@ -13,6 +13,7 @@ namespace ImageProcessingTool.ViewModels {
         private readonly ImageProcessingService _imageProcessingService;
         private Bitmap _bitmap;
         private BitmapImage _displayedImage;
+        private string _currentFileName; // Added property
 
         public ICommand LoadImageCommand { get; }
         public ICommand SaveImageCommand { get; }
@@ -34,6 +35,14 @@ namespace ImageProcessingTool.ViewModels {
             }
         }
 
+        public string CurrentFileName {
+            get => _currentFileName;
+            set {
+                _currentFileName = value;
+                OnPropertyChanged();
+            }
+        }
+
         private void LoadImage() {
             OpenFileDialog openFileDialog = new OpenFileDialog {
                 Filter = "Image files|*.png;*.jpg;*.jpeg;*.bmp;*.gif"
@@ -42,6 +51,7 @@ namespace ImageProcessingTool.ViewModels {
             if (openFileDialog.ShowDialog() == true) {
                 _bitmap = _imageProcessingService.LoadImage(openFileDialog.FileName);
                 DisplayedImage = ConvertBitmapToBitmapImage(_bitmap);
+                CurrentFileName = Path.GetFileName(openFileDialog.FileName); // Set file name
 
                 // Notify the commands that the state has changed
                 ((RelayCommand)SaveImageCommand).RaiseCanExecuteChanged();
@@ -92,5 +102,4 @@ namespace ImageProcessingTool.ViewModels {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
 }

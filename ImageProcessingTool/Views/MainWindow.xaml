@@ -12,13 +12,27 @@
     </Window.DataContext>
 
     <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Border BorderThickness="3" BorderBrush="Black" CornerRadius="5" Padding="2" Margin="10">
-                <Image Source="{Binding DisplayedImage}" Width="350" Height="250" />
-            </Border>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Buttons on the Left Side -->
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Column="0" Margin="10">
             <Button Content="Load Image" Command="{Binding LoadImageCommand}" Width="150" Margin="5"/>
             <Button Content="Convert to Grayscale" Command="{Binding ConvertToGrayscaleCommand}" Width="200" Margin="5"/>
             <Button Content="Save Image" Command="{Binding SaveImageCommand}" Width="150" Margin="5"/>
         </StackPanel>
+
+        <!-- Image and File Name on the Right Side -->
+        <Border Grid.Column="1" BorderThickness="3" BorderBrush="Black" CornerRadius="5" Padding="2" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <StackPanel>
+                <!-- Display the Image -->
+                <Image Source="{Binding DisplayedImage}" Width="350" Height="250" />
+
+                <!-- Display the Current File Name -->
+                <TextBlock Text="{Binding CurrentFileName}" FontWeight="Bold" Margin="5" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
