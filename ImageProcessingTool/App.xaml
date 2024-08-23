@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:ImageProcessingTool"
              StartupUri="/Views/MainWindow.xaml">
     <Application.Resources>
-         
+        <!-- Global BooleanToVisibilityConverter -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Application.Resources>
 </Application>
