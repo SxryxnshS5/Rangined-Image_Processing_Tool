@@ -1,0 +1,62 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1
+
+    - name: Build solution
+      run: msbuild ImageProcessingTool.sln /p:Configuration=Release
+
+    - name: List files in Release directory
+      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ImageProcessingTool
+        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release" # Use absolute path with forward slashes
+          
+  release:
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ImageProcessingTool
+        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release" 
+
+    - name: List files in downloaded artifact
+      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release" 
+
+    - name: Create a Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: 'v1.0.${{ github.run_number }}'
+        release_name: 'Rangined - Image_Processing_Tool v1.0.${{ github.run_number }}'
+        draft: false
+        prerelease: false
+
+    - name: Upload build to Release
+      uses: svenstaro/upload-release-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        file: "${{ github.workspace }}/ImageProcessingTool/bin/Release/ImageProcessingTool.exe"
+        asset_name: ImageProcessingTool.exe
+        tag: 'v1.0.${{ github.run_number }}'
