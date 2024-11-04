@@ -17,17 +17,6 @@
 mono_crash.*
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-[Bb]in/
 [Oo]bj/
 [Oo]ut/
 [Ll]og/
@@ -230,7 +219,6 @@ _pkginfo.txt
 !?*.[Cc]ache/
 
 # Others
-ClientBin/
 ~$*
 *~
 *.dbmdl
@@ -338,9 +326,6 @@ OpenCover/
 # Azure Stream Analytics local run output
 ASALocalRun/
 
-# MSBuild Binary and Structured Log
-*.binlog
-
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 
@@ -360,4 +345,3 @@ MigrationBackup/
 .ionide/
 
 # Fody - auto-generated XML schema
-FodyWeavers.xsd
