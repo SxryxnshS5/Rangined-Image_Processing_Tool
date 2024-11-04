@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   build:
@@ -26,17 +27,17 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ImageProcessingTool
-        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release" # Use absolute path with forward slashes
+        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release"
           
   release:
     needs: build
     runs-on: windows-latest
+
     steps:
     - name: Download build artifact
       uses: actions/download-artifact@v3
       with:
         name: ImageProcessingTool
-        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release" 
 
     - name: List files in downloaded artifact
       run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release" 
