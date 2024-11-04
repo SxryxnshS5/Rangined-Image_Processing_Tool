@@ -26,16 +26,16 @@ jobs:
       run: dotnet build ImageProcessingTool/ImageProcessingTool.csproj --configuration Release  # Build the project
 
     - name: List files in Release directory
-      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release"
+      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows"
 
     - name: Publish the application
-      run: dotnet publish ImageProcessingTool/ImageProcessingTool.csproj --configuration Release --output "${{ github.workspace }}/ImageProcessingTool/bin/Release"  # Publish the application
+      run: dotnet publish ImageProcessingTool/ImageProcessingTool.csproj --configuration Release --output "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows"  # Publish the application
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: ImageProcessingTool
-        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release"
+        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows"
           
   release:
     needs: build
@@ -48,7 +48,7 @@ jobs:
         name: ImageProcessingTool
 
     - name: List files in downloaded artifact
-      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release" 
+      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows" 
 
     - name: Create a Release
       id: create_release
@@ -66,6 +66,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        file: "${{ github.workspace }}/ImageProcessingTool/bin/Release/ImageProcessingTool.exe"
+        file: "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows/ImageProcessingTool.exe"
         asset_name: ImageProcessingTool.exe
         tag: 'v1.0.${{ github.run_number }}'
