@@ -47,9 +47,6 @@ jobs:
       with:
         name: ImageProcessingTool
 
-    - name: List files in downloaded artifact
-      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows" 
-
     - name: Create a Release
       id: create_release
       uses: actions/create-release@v1
