@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,14 +14,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'  # Specify the .NET version you want to use
+
+    - name: Restore NuGet packages
+      run: dotnet restore ImageProcessingTool/ImageProcessingTool.csproj  # Adjust path if necessary
 
     - name: Build solution
-      run: msbuild ImageProcessingTool.sln /p:Configuration=Release
+      run: dotnet build ImageProcessingTool/ImageProcessingTool.csproj --configuration Release  # Build the project
 
     - name: List files in Release directory
       run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release"
+
+    - name: Publish the application
+      run: dotnet publish ImageProcessingTool/ImageProcessingTool.csproj --configuration Release --output "${{ github.workspace }}/ImageProcessingTool/bin/Release"  # Publish the application
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
