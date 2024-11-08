@@ -25,17 +25,19 @@ jobs:
     - name: Build solution
       run: dotnet build ImageProcessingTool/ImageProcessingTool.csproj --configuration Release  # Build the project
 
-    - name: List files in Release directory
-      run: dir "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows"
-
     - name: Publish the application
       run: dotnet publish ImageProcessingTool/ImageProcessingTool.csproj --configuration Release --output "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows"  # Publish the application
 
-    - name: Upload artifact
+    - name: Create zip of published files
+      run: |
+        cd "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows"
+        Compress-Archive -Path * -DestinationPath "${{ github.workspace }}/ImageProcessingTool/bin/Release/ImageProcessingTool.zip"
+
+    - name: Upload zipped artifact
       uses: actions/upload-artifact@v3
       with:
         name: ImageProcessingTool
-        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows"
+        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release/ImageProcessingTool.zip"
           
   release:
     needs: build
@@ -46,7 +48,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: ImageProcessingTool
-        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows/"
+        path: "${{ github.workspace }}/ImageProcessingTool/bin/Release"
 
     - name: Create a Release
       id: create_release
@@ -59,11 +61,11 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Upload build to Release
+    - name: Upload zip to Release
       uses: svenstaro/upload-release-action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        file: "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows/*"
+        file: "${{ github.workspace }}/ImageProcessingTool/bin/Release/ImageProcessingTool.zip"
         asset_name: "ImageProcessingTool-v1.0.${{ github.run_number }}.zip"
         tag: 'v1.0.${{ github.run_number }}'
