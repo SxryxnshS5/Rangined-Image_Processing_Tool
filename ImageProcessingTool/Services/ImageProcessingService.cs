@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
@@ -16,22 +15,50 @@ namespace ImageProcessingTool.Services {
             bitmap.Save(outputPath, format);
         }
 
-        // Convert the image to grayscale
+        // Convert the image to grayscale using faster pixel manipulation with LockBits
         public Bitmap ConvertToGrayscale(Bitmap bitmap) {
-            // Create a grayscale version of the bitmap
-            Bitmap grayBitmap = new Bitmap(bitmap.Width, bitmap.Height);
+            Bitmap grayBitmap = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
 
-            for (int y = 0; y < bitmap.Height; y++) {
-                for (int x = 0; x < bitmap.Width; x++) {
-                    Color originalColor = bitmap.GetPixel(x, y);
-                    int alpha = originalColor.A;
-                    int grayValue = (int)(originalColor.R * 0.3 + originalColor.G * 0.59 + originalColor.B * 0.11);
-                    Color grayColor = Color.FromArgb(alpha, grayValue, grayValue, grayValue);
-                    grayBitmap.SetPixel(x, y, grayColor);
-                }
+            Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            BitmapData data = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData grayData = grayBitmap.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+
+            int bytes = Math.Abs(data.Stride) * bitmap.Height;
+            byte[] buffer = new byte[bytes];
+            byte[] grayBuffer = new byte[bytes];
+            System.Runtime.InteropServices.Marshal.Copy(data.Scan0, buffer, 0, bytes);
+
+            for (int i = 0; i < buffer.Length; i += 4) {
+                byte alpha = buffer[i + 3];
+                byte grayValue = (byte)(buffer[i + 2] * 0.3 + buffer[i + 1] * 0.59 + buffer[i] * 0.11);
+
+                grayBuffer[i] = grayValue;
+                grayBuffer[i + 1] = grayValue;
+                grayBuffer[i + 2] = grayValue;
+                grayBuffer[i + 3] = alpha;
             }
 
+            System.Runtime.InteropServices.Marshal.Copy(grayBuffer, 0, grayData.Scan0, bytes);
+            bitmap.UnlockBits(data);
+            grayBitmap.UnlockBits(grayData);
+
             return grayBitmap;
+        }
+
+        // Convert and save multiple images in parallel
+        public List<Bitmap> ConvertImagesToGrayscale(IEnumerable<string> filePaths) {
+            List<Bitmap> grayImages = new List<Bitmap>();
+
+            Parallel.ForEach(filePaths, filePath => {
+                Bitmap bitmap = LoadImage(filePath);
+                Bitmap grayBitmap = ConvertToGrayscale(bitmap);
+                lock (grayImages)  // Protect shared resource
+                {
+                    grayImages.Add(grayBitmap);
+                }
+            });
+
+            return grayImages;
         }
 
         // Save images as a ZIP file

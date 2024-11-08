@@ -8,16 +8,17 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using ImageProcessingTool.Helpers;
 using System.Windows.Media.Imaging;
-using System.Linq;
+using System.Diagnostics;
 
 namespace ImageProcessingTool.ViewModels {
+
     public class MainViewModel : INotifyPropertyChanged {
-        private readonly ImageProcessingService _imageProcessingService;
-        private ObservableCollection<Bitmap> _images;
-        private Bitmap _currentImage;
-        private BitmapImage _displayedImage;
-        private string _currentFileName;
-        private string _notificationMessage;
+        private readonly ImageProcessingService imageProcessingService;
+        private ObservableCollection<Bitmap> images;
+        private Bitmap currentImage;
+        private BitmapImage displayedImage;
+        private string currentFileName;
+        private string notificationMessage;
 
         public ICommand LoadImagesCommand { get; }
         public ICommand SaveImagesCommand { get; }
@@ -26,8 +27,8 @@ namespace ImageProcessingTool.ViewModels {
         public ICommand NextImageCommand { get; }
 
         public MainViewModel() {
-            _imageProcessingService = new ImageProcessingService();
-            _images = new ObservableCollection<Bitmap>();
+            imageProcessingService = new ImageProcessingService();
+            images = new ObservableCollection<Bitmap>();
 
             LoadImagesCommand = new RelayCommand(LoadImages);
             SaveImagesCommand = new RelayCommand(SaveImages, CanSaveImages);
@@ -37,29 +38,29 @@ namespace ImageProcessingTool.ViewModels {
         }
 
         public BitmapImage DisplayedImage {
-            get => _displayedImage;
+            get => displayedImage;
             set {
-                _displayedImage = value;
+                displayedImage = value;
                 OnPropertyChanged();
             }
         }
 
         public string CurrentFileName {
-            get => _currentFileName;
+            get => currentFileName;
             set {
-                _currentFileName = value;
+                currentFileName = value;
                 OnPropertyChanged();
             }
         }
 
         public string SaveButtonText {
-            get => _images.Count > 1 ? "Save Images" : "Save Image";
+            get => images.Count > 1 ? "Save Images" : "Save Image";
         }
 
         public string NotificationMessage {
-            get => _notificationMessage;
+            get => notificationMessage;
             set {
-                _notificationMessage = value;
+                notificationMessage = value;
                 OnPropertyChanged();
             }
         }
@@ -71,10 +72,10 @@ namespace ImageProcessingTool.ViewModels {
             };
 
             if (openFileDialog.ShowDialog() == true) {
-                _images.Clear();
+                images.Clear();
                 foreach (var filePath in openFileDialog.FileNames) {
-                    var bitmap = _imageProcessingService.LoadImage(filePath);
-                    _images.Add(bitmap);
+                    var bitmap = imageProcessingService.LoadImage(filePath);
+                    images.Add(bitmap);
                 }
                 UpdateCurrentImage();
                 ((RelayCommand)SaveImagesCommand).RaiseCanExecuteChanged();
@@ -84,15 +85,15 @@ namespace ImageProcessingTool.ViewModels {
                 OnPropertyChanged(nameof(SaveButtonText));
 
                 // Update notification message
-                NotificationMessage = $"{_images.Count} image(s) loaded successfully.";
+                NotificationMessage = $"{images.Count} image(s) loaded successfully.";
             }
         }
 
         private void SaveImages() {
-            if (_images.Count == 0)
+            if (images.Count == 0)
                 return;
 
-            if (_images.Count == 1) {
+            if (images.Count == 1) {
                 SaveSingleImage();
             }
             else {
@@ -100,7 +101,7 @@ namespace ImageProcessingTool.ViewModels {
             }
 
             // Update notification message
-            NotificationMessage = $"{_images.Count} image(s) saved successfully.";
+            NotificationMessage = $"{images.Count} image(s) saved successfully.";
         }
 
         private void SaveSingleImage() {
@@ -109,7 +110,7 @@ namespace ImageProcessingTool.ViewModels {
             };
 
             if (saveFileDialog.ShowDialog() == true) {
-                _imageProcessingService.SaveImage(_currentImage, saveFileDialog.FileName, System.Drawing.Imaging.ImageFormat.Png);
+                imageProcessingService.SaveImage(currentImage, saveFileDialog.FileName, System.Drawing.Imaging.ImageFormat.Png);
             }
         }
 
@@ -119,39 +120,45 @@ namespace ImageProcessingTool.ViewModels {
             };
 
             if (saveFileDialog.ShowDialog() == true) {
-                _imageProcessingService.SaveImagesAsZip(_images, saveFileDialog.FileName);
+                imageProcessingService.SaveImagesAsZip(images, saveFileDialog.FileName);
             }
         }
 
         private void ConvertToGrayscale() {
-            if (_images.Count == 0)
+            if (images.Count == 0)
                 return;
 
-            for (int i = 0; i < _images.Count; i++) {
-                _images[i] = _imageProcessingService.ConvertToGrayscale(_images[i]);
+            // Start timing
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < images.Count; i++) {
+                images[i] = imageProcessingService.ConvertToGrayscale(images[i]);
             }
             UpdateCurrentImage();
 
-            // Update notification message
-            NotificationMessage = $"Converted {_images.Count} image(s) to grayscale.";
+            // Stop timing
+            stopwatch.Stop();
+
+            // Update properties with timing and notification
+            NotificationMessage = $"Converted {images.Count} image(s) to grayscale in {stopwatch.Elapsed.TotalSeconds:F2} seconds.";
         }
 
         private void UpdateCurrentImage() {
-            if (_images.Count > 0) {
-                _currentImage = _images[0];
-                DisplayedImage = ConvertBitmapToBitmapImage(_currentImage);
+            if (images.Count > 0) {
+                currentImage = images[0];
+                DisplayedImage = ConvertBitmapToBitmapImage(currentImage);
                 CurrentFileName = $"Image 1"; // Update as needed to reflect current file name
             }
         }
 
         private void ShowPreviousImage() {
-            if (_images.Count == 0)
+            if (images.Count == 0)
                 return;
 
-            int currentIndex = _images.IndexOf(_currentImage);
+            int currentIndex = images.IndexOf(currentImage);
             if (currentIndex > 0) {
-                _currentImage = _images[currentIndex - 1];
-                DisplayedImage = ConvertBitmapToBitmapImage(_currentImage);
+                currentImage = images[currentIndex - 1];
+                DisplayedImage = ConvertBitmapToBitmapImage(currentImage);
                 CurrentFileName = $"Image {currentIndex}"; // Update as needed to reflect current file name
             }
             ((RelayCommand)PreviousImageCommand).RaiseCanExecuteChanged();
@@ -159,13 +166,13 @@ namespace ImageProcessingTool.ViewModels {
         }
 
         private void ShowNextImage() {
-            if (_images.Count == 0)
+            if (images.Count == 0)
                 return;
 
-            int currentIndex = _images.IndexOf(_currentImage);
-            if (currentIndex < _images.Count - 1) {
-                _currentImage = _images[currentIndex + 1];
-                DisplayedImage = ConvertBitmapToBitmapImage(_currentImage);
+            int currentIndex = images.IndexOf(currentImage);
+            if (currentIndex < images.Count - 1) {
+                currentImage = images[currentIndex + 1];
+                DisplayedImage = ConvertBitmapToBitmapImage(currentImage);
                 CurrentFileName = $"Image {currentIndex + 2}"; // Update as needed to reflect current file name
             }
             ((RelayCommand)PreviousImageCommand).RaiseCanExecuteChanged();
@@ -173,19 +180,19 @@ namespace ImageProcessingTool.ViewModels {
         }
 
         private bool CanSaveImages() {
-            return _images.Count > 0;
+            return images.Count > 0;
         }
 
         private bool CanConvertToGrayscale() {
-            return _images.Count > 0;
+            return images.Count > 0;
         }
 
         private bool CanShowPreviousImage() {
-            return _images.IndexOf(_currentImage) > 0;
+            return images.IndexOf(currentImage) > 0;
         }
 
         private bool CanShowNextImage() {
-            return _images.IndexOf(_currentImage) < _images.Count - 1;
+            return images.IndexOf(currentImage) < images.Count - 1;
         }
 
         private BitmapImage ConvertBitmapToBitmapImage(Bitmap bitmap) {

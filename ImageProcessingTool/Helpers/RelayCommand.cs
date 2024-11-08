@@ -1,24 +1,23 @@
-﻿using System;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace ImageProcessingTool.Helpers {
     public class RelayCommand : ICommand {
-        private readonly Action _execute;
-        private readonly Func<bool> _canExecute;
+        private readonly Action execute;
+        private readonly Func<bool> canExecute;
 
         public event EventHandler CanExecuteChanged;
 
         public RelayCommand(Action execute, Func<bool> canExecute = null) {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
+            this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            this.canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter) {
-            return _canExecute == null || _canExecute();
+            return canExecute == null || canExecute();
         }
 
         public void Execute(object parameter) {
-            _execute();
+            execute();
         }
 
         public void RaiseCanExecuteChanged() {
