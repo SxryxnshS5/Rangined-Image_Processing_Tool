@@ -64,6 +64,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        file: "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows/ImageProcessingTool.exe"
-        asset_name: ImageProcessingTool.exe
+        file: "${{ github.workspace }}/ImageProcessingTool/bin/Release/net8.0-windows/*"
+        asset_name: "ImageProcessingTool-v1.0.${{ github.run_number }}.zip"
         tag: 'v1.0.${{ github.run_number }}'
